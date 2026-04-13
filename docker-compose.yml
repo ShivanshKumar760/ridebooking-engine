@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: uber-postgres
+    environment:
+      POSTGRES_USER: uber_user
+      POSTGRES_PASSWORD: uber_pass
+      POSTGRES_DB: uber_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "uber_user", "-d", "uber_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - uber-network
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      target: builder
+    container_name: uber-migrate
+    command: node dist/config/migrate.js
+    environment:
+      DATABASE_URL: postgresql://uber_user:uber_pass@postgres:5432/uber_db
+      DB_SSL: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - uber-network
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      target: production
+    container_name: uber-api
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://uber_user:uber_pass@postgres:5432/uber_db
+      DB_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-32-chars-min}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-32-chars-min}
+      JWT_EXPIRES_IN: 1h
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PAYMENT_GATEWAY: ${PAYMENT_GATEWAY:-mock}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      BASE_FARE: "50"
+      PER_KM_RATE: "12"
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks:
+      - uber-network
+
+volumes:
+  postgres_data:
+
+networks:
+  uber-network:
+    driver: bridge

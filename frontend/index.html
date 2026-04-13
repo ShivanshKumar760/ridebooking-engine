@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uber API Tester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { color: #333; margin-bottom: 20px; }
+    .section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h2 { color: #666; margin-bottom: 15px; font-size: 18px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 4px; font-weight: 500; color: #444; }
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    textarea { height: 80px; resize: vertical; }
+    button { background: #000; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 500; margin-right: 8px; }
+    button:hover { background: #333; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    .btn-secondary { background: #666; }
+    .btn-success { background: #008080; }
+    .btn-danger { background: #dc3545; }
+    pre { background: #1a1a1a; color: #0f0; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; max-height: 300px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 15px; }
+    .tab { padding: 8px 16px; background: #eee; border: none; border-radius: 4px 4px 0 0; cursor: pointer; }
+    .tab.active { background: #000; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .status { padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    .auth-section { display: flex; gap: 20px; }
+    .auth-box { flex: 1; }
+    .user-info { background: #e9ecef; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+    .user-info p { margin: 4px 0; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #f8f9fa; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Uber API Tester</h1>
+    
+    <div class="section">
+      <h2>Configuration</h2>
+      <div class="form-group">
+        <label>API Base URL</label>
+        <input type="text" id="apiBase" value="http://localhost:3001">
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Authentication</h2>
+      <div class="auth-section">
+        <div class="auth-box">
+          <h3 style="font-size:14px;margin-bottom:10px;">Register Passenger</h3>
+          <div class="form-group"><label>Name</label><input type="text" id="regName" placeholder="John Doe"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="john@example.com"></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="regPhone" placeholder="+1234567890"></div>
+          <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Password123"></div>
+          <button onclick="registerPassenger()">Register</button>
+        </div>
+        <div class="auth-box">
+          <h3 style="font-size:14px;margin-bottom:10px;">Login</h3>
+          <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="john@example.com"></div>
+          <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Password123"></div>
+          <button onclick="login()">Login</button>
+        </div>
+      </div>
+      <div id="userInfo" class="user-info hidden">
+        <p><strong>Logged in as:</strong> <span id="userName"></span></p>
+        <p><strong>Email:</strong> <span id="userEmail"></span></p>
+        <p><strong>Role:</strong> <span id="userRole"></span></p>
+        <button class="btn-danger" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Rides</h2>
+      <div class="form-group">
+        <label>Pickup Latitude</label>
+        <input type="number" step="any" id="pickupLat" value="28.6139">
+      </div>
+      <div class="form-group">
+        <label>Pickup Longitude</label>
+        <input type="number" step="any" id="pickupLng" value="77.2090">
+      </div>
+      <div class="form-group">
+        <label>Pickup Address</label>
+        <input type="text" id="pickupAddress" value="Connaught Place, Delhi">
+      </div>
+      <div class="form-group">
+        <label>Dropoff Latitude</label>
+        <input type="number" step="any" id="dropoffLat" value="28.5355">
+      </div>
+      <div class="form-group">
+        <label>Dropoff Longitude</label>
+        <input type="number" step="any" id="dropoffLng" value="77.3910">
+      </div>
+      <div class="form-group">
+        <label>Dropoff Address</label>
+        <input type="text" id="dropoffAddress" value="Noida Sector 18">
+      </div>
+      <div class="form-group">
+        <label>Vehicle Type</label>
+        <select id="vehicleType">
+          <option value="bike">Bike</option>
+          <option value="auto">Auto</option>
+          <option value="cab" selected>Cab</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+      <button onclick="bookRide()">Book Ride</button>
+      <button class="btn-secondary" onclick="getRideHistory()">Get History</button>
+    </div>
+
+    <div class="section">
+      <h2>Drivers</h2>
+      <div class="form-group">
+        <label>Latitude</label>
+        <input type="number" step="any" id="driverLat" value="28.6139">
+      </div>
+      <div class="form-group">
+        <label>Longitude</label>
+        <input type="number" step="any" id="driverLng" value="77.2090">
+      </div>
+      <button onclick="updateDriverLocation()">Update Location</button>
+      <button class="btn-secondary" onclick="toggleAvailability()">Toggle Availability</button>
+      <button class="btn-success" onclick="getNearbyDrivers()">Find Nearby Drivers</button>
+    </div>
+
+    <div class="section">
+      <h2>Response</h2>
+      <div id="status"></div>
+      <pre id="response">Response will appear here...</pre>
+    </div>
+  </div>
+
+  <script>
+    let tokens = { access: null, refresh: null };
+    let user = null;
+
+    const api = () => document.getElementById('apiBase').value;
+
+    async function request(method, path, body = null, requireAuth = false) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (requireAuth && tokens.access) {
+        headers['Authorization'] = `Bearer ${tokens.access}`;
+      }
+      
+      const options = { method, headers };
+      if (body && method !== 'GET') {
+        options.body = JSON.stringify(body);
+      }
+
+      try {
+        const res = await fetch(`${api()}${path}`, options);
+        const data = await res.json();
+        showResponse(data, res.status);
+        return { data, status: res.status };
+      } catch (err) {
+        showResponse({ error: err.message }, 0);
+        return { data: { error: err.message }, status: 0 };
+      }
+    }
+
+    function showResponse(data, status) {
+      const statusEl = document.getElementById('status');
+      const responseEl = document.getElementById('response');
+      
+      statusEl.className = `status ${status >= 200 && status < 300 ? 'success' : 'error'}`;
+      statusEl.textContent = `Status: ${status}`;
+      responseEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function registerPassenger() {
+      const body = {
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        phone: document.getElementById('regPhone').value,
+        password: document.getElementById('regPassword').value
+      };
+      await request('POST', '/api/auth/register/passenger', body);
+    }
+
+    async function login() {
+      const body = {
+        email: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      };
+      const { data } = await request('POST', '/api/auth/login', body);
+      if (data.success) {
+        tokens.access = data.data.accessToken;
+        tokens.refresh = data.data.refreshToken;
+        user = data.data.user;
+        showUserInfo();
+      }
+    }
+
+    async function logout() {
+      await request('POST', '/api/auth/logout', null, true);
+      tokens = { access: null, refresh: null };
+      user = null;
+      showUserInfo();
+    }
+
+    async function getProfile() {
+      await request('GET', '/api/auth/me', null, true);
+    }
+
+    function showUserInfo() {
+      const el = document.getElementById('userInfo');
+      if (user) {
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('userRole').textContent = user.role;
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    async function bookRide() {
+      const body = {
+        pickupLocation: {
+          latitude: parseFloat(document.getElementById('pickupLat').value),
+          longitude: parseFloat(document.getElementById('pickupLng').value)
+        },
+        dropoffLocation: {
+          latitude: parseFloat(document.getElementById('dropoffLat').value),
+          longitude: parseFloat(document.getElementById('dropoffLng').value)
+        },
+        pickupAddress: document.getElementById('pickupAddress').value,
+        dropoffAddress: document.getElementById('dropoffAddress').value,
+        vehicleType: document.getElementById('vehicleType').value
+      };
+      await request('POST', '/api/rides/book', body, true);
+    }
+
+    async function getRideHistory() {
+      await request('GET', '/api/rides/history', null, true);
+    }
+
+    async function updateDriverLocation() {
+      const body = {
+        latitude: parseFloat(document.getElementById('driverLat').value),
+        longitude: parseFloat(document.getElementById('driverLng').value)
+      };
+      await request('PUT', '/api/drivers/location', body, true);
+    }
+
+    async function toggleAvailability() {
+      await request('PUT', '/api/drivers/availability', { isAvailable: true }, true);
+    }
+
+    async function getNearbyDrivers() {
+      const lat = document.getElementById('driverLat').value;
+      const lng = document.getElementById('driverLng').value;
+      const vt = document.getElementById('vehicleType').value;
+      await request('GET', `/api/drivers/nearby?latitude=${lat}&longitude=${lng}&vehicleType=${vt}`, null, true);
+    }
+
+    // Auto-refresh token if expired
+    setInterval(async () => {
+      if (tokens.refresh && !tokens.access) {
+        const { data } = await request('POST', '/api/auth/refresh', { refreshToken: tokens.refresh });
+        if (data.success) {
+          tokens.access = data.data.accessToken;
+        }
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
