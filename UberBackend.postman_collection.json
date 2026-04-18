@@ -1,0 +1,851 @@
+{
+  "info": {
+    "name": "Uber Backend API",
+    "description": "Complete test collection for Uber Backend — Auth, Rides, Drivers, Payments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "passengerToken", "value": "", "type": "string" },
+    { "key": "driverToken", "value": "", "type": "string" },
+    { "key": "rideId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "1. Register Passenger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('passengerToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('passengerRefreshToken', res.data.refreshToken);",
+                  "  console.log('Passenger token saved');",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has tokens', () => pm.expect(res.data).to.have.property('accessToken'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register/passenger",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"passenger@test.com\",\n  \"phone\": \"+919876543210\",\n  \"name\": \"Test Passenger\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Register Driver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('driverToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('driverRefreshToken', res.data.refreshToken);",
+                  "  console.log('Driver token saved');",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has tokens', () => pm.expect(res.data).to.have.property('accessToken'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register/driver",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver@test.com\",\n  \"phone\": \"+919876543211\",\n  \"name\": \"Test Driver\",\n  \"password\": \"Password123\",\n  \"vehicleType\": \"cab\",\n  \"vehicleNumber\": \"MH12AB1234\",\n  \"vehicleModel\": \"Swift Dzire\",\n  \"licenseNumber\": \"MH0120210012345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Login as Passenger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('passengerToken', res.data.accessToken);",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has access token', () => pm.expect(res.data.accessToken).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"passenger@test.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Login as Driver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('driverToken', res.data.accessToken);",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has access token', () => pm.expect(res.data.accessToken).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver@test.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Get My Profile (Passenger)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has passenger profile', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.role).to.eql('passenger');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "6. Get My Profile (Driver)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{driverToken}}" }],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "7. Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{passengerRefreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "8. Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        },
+        {
+          "name": "❌ Register - Invalid Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Has validation error', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.errors).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register/passenger",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\",\n  \"phone\": \"+919876543210\",\n  \"name\": \"Bad User\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "❌ Login - Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"passenger@test.com\",\n  \"password\": \"WrongPassword1\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧑‍✈️ Driver",
+      "item": [
+        {
+          "name": "1. Set Driver Available",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Driver is available', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.isAvailable).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Update Driver Location (Pune - Shivajinagar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 18.5304,\n  \"longitude\": 73.8567,\n  \"heading\": 180.0,\n  \"speed\": 30.5\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Get Nearby Drivers (Passenger)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns driver list', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.drivers).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/drivers/nearby?latitude=18.5204&longitude=73.8567&vehicleType=cab&radius=10",
+              "query": [
+                { "key": "latitude", "value": "18.5204" },
+                { "key": "longitude", "value": "73.8567" },
+                { "key": "vehicleType", "value": "cab" },
+                { "key": "radius", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Driver Ride History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{driverToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/drivers/rides?page=1&limit=10",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Set Driver Unavailable",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "❌ Update Location - Passenger Blocked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 - forbidden for passenger', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 18.5304,\n  \"longitude\": 73.8567\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚕 Rides",
+      "item": [
+        {
+          "name": "1. Make Driver Available First",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Update Driver Location Near Pickup",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 18.5210,\n  \"longitude\": 73.8560\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Book a Ride (Passenger)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('rideId', res.data.rideId);",
+                  "  console.log('Ride ID saved:', res.data.rideId);",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has rideId', () => pm.expect(res.data.rideId).to.be.a('string'));",
+                  "pm.test('Status is searching', () => pm.expect(res.data.status).to.eql('searching'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/rides/book",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 18.5204,\n    \"longitude\": 73.8567\n  },\n  \"pickupAddress\": \"Shivajinagar, Pune, Maharashtra\",\n  \"dropoffLocation\": {\n    \"latitude\": 18.6298,\n    \"longitude\": 73.7997\n  },\n  \"dropoffAddress\": \"Pimpri, Pune, Maharashtra\",\n  \"vehicleType\": \"cab\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Get Ride Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has ride data', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/rides/{{rideId}}"
+          }
+        },
+        {
+          "name": "5. Accept Ride (Driver)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Ride accepted', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{driverToken}}" }],
+            "url": "{{baseUrl}}/api/drivers/rides/{{rideId}}/accept"
+          }
+        },
+        {
+          "name": "6. Get Ride Status (after driver assigned)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.otp) {",
+                  "  pm.collectionVariables.set('rideOtp', res.data.otp);",
+                  "  console.log('OTP saved:', res.data.otp);",
+                  "}",
+                  "pm.test('Status is driver_assigned', () => {",
+                  "  pm.expect(res.data.status).to.eql('driver_assigned');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/rides/{{rideId}}"
+          }
+        },
+        {
+          "name": "7. Start Ride with OTP (Driver)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/rides/{{rideId}}/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"{{rideOtp}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "8. Complete Ride (Driver)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has final fare', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.finalFare).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{driverToken}}" }],
+            "url": "{{baseUrl}}/api/drivers/rides/{{rideId}}/complete"
+          }
+        },
+        {
+          "name": "9. Rate the Ride (Passenger rates Driver)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/rides/{{rideId}}/rate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great driver, smooth ride!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "10. Get Ride History (Passenger)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/rides/history?page=1&limit=10",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "11. Cancel a Ride (Passenger)",
+          "description": "Book a new ride first then cancel it",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/rides/{{rideId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Changed my mind\"\n}"
+            }
+          }
+        },
+        {
+          "name": "❌ Book Ride - Missing Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/rides/book",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleType\": \"cab\"\n}"
+            }
+          }
+        },
+        {
+          "name": "❌ Start Ride - Wrong OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/drivers/rides/{{rideId}}/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"000000\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Payments",
+      "item": [
+        {
+          "name": "1. Create Payment Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('gatewayOrderId', res.data.gatewayOrderId);",
+                  "  console.log('Gateway:', res.data.gateway);",
+                  "  console.log('Order ID:', res.data.gatewayOrderId);",
+                  "}",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has gateway order id', () => {",
+                  "  pm.expect(res.data.gatewayOrderId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/order"
+          }
+        },
+        {
+          "name": "2. Mock Payment (Instant Complete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Payment successful', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.data.success).to.be.true;",
+                  "  pm.expect(res.data.transactionId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/mock"
+          }
+        },
+        {
+          "name": "3. Verify Razorpay Payment",
+          "description": "Use after actual Razorpay checkout on the client side",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gatewayOrderId\": \"order_xxxxxxxxxxxx\",\n  \"gatewayPaymentId\": \"pay_xxxxxxxxxxxx\",\n  \"gatewaySignature\": \"your_hmac_sha256_signature\",\n  \"gateway\": \"razorpay\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Verify Stripe Payment",
+          "description": "Use after actual Stripe PaymentIntent is confirmed on the client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{passengerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gatewayOrderId\": \"pi_xxxxxxxxxxxx\",\n  \"gatewayPaymentId\": \"pi_xxxxxxxxxxxx\",\n  \"gateway\": \"stripe\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Get Payment Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/status"
+          }
+        },
+        {
+          "name": "❌ Payment - Already Paid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 - conflict', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{passengerToken}}" }],
+            "url": "{{baseUrl}}/api/payments/rides/{{rideId}}/mock"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status ok', () => {",
+                  "  const res = pm.response.json();",
+                  "  pm.expect(res.status).to.eql('ok');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api"
+          }
+        },
+        {
+          "name": "❌ Invalid Route (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/nonexistent"
+          }
+        },
+        {
+          "name": "❌ No Auth Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    }
+  ]
+}
